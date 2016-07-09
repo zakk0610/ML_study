@@ -6,7 +6,8 @@ mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
 def add_layer(inputs, in_size, out_size, layer_name, activation_function = None):
   Weights = tf.Variable(tf.truncated_normal([in_size, out_size], stddev=0.1))
-  biases = tf.Variable(tf.constant(0.1, shape=[out_size]))
+  #Weights = tf.Variable(tf.random_normal([in_size, out_size]))  #failed
+  biases = tf.Variable(tf.zeros([1, out_size]) + 0.1)
   Wx_plus_b = tf.matmul(inputs, Weights) + biases
   if activation_function is None:
     outputs = Wx_plus_b
@@ -36,7 +37,9 @@ L1 = add_layer(xs, 784, 100, 'L1', activation_function= tf.nn.relu)
 dropouted = tf.nn.dropout(L1, keep_prob)
 prediction =add_layer(dropouted, 100, 10, 'L2', activation_function= tf.nn.softmax)
 
-cross_entropy = -tf.reduce_mean(ys * tf.log(prediction))  #loss
+#cross_entropy = -tf.reduce_mean(ys * tf.log(prediction))  #loss
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(prediction),
+                                              reduction_indices=[1]))  # loss
 tf.scalar_summary('loss', cross_entropy)
 train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 
