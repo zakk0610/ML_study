@@ -8,6 +8,7 @@ import math
 import pickle
 import datetime
 import numpy as np
+import pandas as pd
 
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten
@@ -160,9 +161,10 @@ def create_submission(predictions, test_id, info):
     sub_file = os.path.join('subm', 'submission_' + suffix + '.csv')
     result1.to_csv(sub_file, index=False)
 
-def load_test(img_rows, img_cols, color_type=3):
+def load_test(testing_set, img_rows, img_cols, color_type=3):
     print('Read test images')
-    path = os.path.join('.', 'picture', 'testing', '*.jpg')
+    path = os.path.join('.', 'picture', testing_set, '*.jpg')
+    print(path)
     files = glob.glob(path)
     X_test = []
     X_test_id = []
@@ -176,7 +178,6 @@ def load_test(img_rows, img_cols, color_type=3):
         total += 1
         if total % thr == 0:
             print('Read {} images from {}'.format(total, len(files)))
-    print ('return test,id')
     return X_test, X_test_id
 
 def old_cache_data(data, path):
@@ -198,18 +199,16 @@ def old_restore_data(path):
     file.close()
     return data
 
-def read_and_normalize_test_data(img_rows=224, img_cols=224, color_type=3):
-    cache_path = os.path.join('cache', 'zakktesting_set' + str(img_rows) +
+def read_and_normalize_test_data(testing_set, img_rows=224, img_cols=224, color_type=3):
+    cache_path = os.path.join('cache', 'zakktesting_set_' + testing_set +str(img_rows) +
                               '_' + str(img_cols) + '.dat')
     if not os.path.isfile(cache_path):
-        test_data, test_id = load_test(img_rows, img_cols, color_type)
+        test_data, test_id = load_test(testing_set, img_rows, img_cols, color_type)
         old_cache_data((test_data, test_id), cache_path)
     else:
         print('Restore test from cache!')
         (test_data, test_id) = old_restore_data(cache_path)
-    print("load success")
     test_data = np.array(test_data, dtype=np.uint8)
-    print("create numpy success")
 
     test_data = test_data.transpose((0, 3, 1, 2))
 
@@ -221,11 +220,11 @@ def read_and_normalize_test_data(img_rows=224, img_cols=224, color_type=3):
     print(test_data.shape[0], 'test samples')
     return test_data, test_id
 
-def test_model_and_submit(model, start=1, end=1, modelStr=''):
+def test_model_and_submit(testing_set, model, start=1, end=1, modelStr=''):
     img_rows, img_cols = 224, 224
 
     print('Start testing............')
-    test_data, test_id = read_and_normalize_test_data(img_rows, img_cols)
+    test_data, test_id = read_and_normalize_test_data(testing_set, img_rows, img_cols)
                                                       
     yfull_test = []
 
@@ -234,7 +233,7 @@ def test_model_and_submit(model, start=1, end=1, modelStr=''):
         test_prediction = model.predict(test_data, batch_size=batch_size, verbose=1)
         yfull_test.append(test_prediction)
 
-    info_string = 'zakk_loss_' + modelStr \
+    info_string = 'zakk_' + testing_set +  modelStr \
                   + '_r_' + str(img_rows) \
                   + '_c_' + str(img_cols) \
                   + '_folds_' + str(end - start + 1) \
@@ -268,4 +267,7 @@ model.summary()
 
 
 model.load_weights('VGG16_weights.h5')
-test_model_and_submit(model, 1, 2, 'myVGG16')
+test_model_and_submit('testing1', model, 1, 2, 'myVGG16')
+test_model_and_submit('testing2', model, 1, 2, 'myVGG16')
+test_model_and_submit('testing3', model, 1, 2, 'myVGG16')
+test_model_and_submit('testing4', model, 1, 2, 'myVGG16')
