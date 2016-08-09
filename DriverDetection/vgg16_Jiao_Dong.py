@@ -36,6 +36,7 @@ color_type_global = 3
 # color_type = 1 - gray
 # color_type = 3 - RGB
 
+batch_size = 20
 
 def get_im(path, img_rows, img_cols, color_type=1):
     # Load as grayscale
@@ -349,7 +350,6 @@ def run_cross_validation(nfolds=10, nb_epoch=10, split=0.2, modelStr=''):
     # Now it loads color image
     # input image dimensions
     img_rows, img_cols = 224, 224
-    batch_size = 32
     random_state = 20
 
     train_data, train_target, driver_id, unique_drivers = \
@@ -407,7 +407,7 @@ def run_cross_validation(nfolds=10, nb_epoch=10, split=0.2, modelStr=''):
         # 1,2,3,4,5
         # Store test predictions
         model = read_model(index, modelStr)
-        test_prediction = model.predict(test_data, batch_size=128, verbose=1)
+        test_prediction = model.predict(test_data, batch_size=batch_size, verbose=1)
         yfull_test.append(test_prediction)
 
     info_string = 'loss_' + modelStr \
@@ -434,7 +434,7 @@ def test_model_and_submit(start=1, end=1, modelStr=''):
     for index in range(start, end + 1):
         # Store test predictions
         model = read_model(index, modelStr)
-        test_prediction = model.predict(test_data, batch_size=128, verbose=1)
+        test_prediction = model.predict(test_data, batch_size=batch_size, verbose=1)
         yfull_test.append(test_prediction)
 
     info_string = 'loss_' + modelStr \
@@ -447,7 +447,7 @@ def test_model_and_submit(start=1, end=1, modelStr=''):
     create_submission(test_res, test_id, info_string)
 
 # nfolds, nb_epoch, split
-run_cross_validation(2, 20, 0.15, '_vgg_16_2x20')
+run_cross_validation(10, 15, 0.15, '_vgg_16_2x20')
 
 # nb_epoch, split
 # run_one_fold_cross_validation(10, 0.1)

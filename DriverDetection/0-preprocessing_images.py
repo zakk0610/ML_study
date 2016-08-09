@@ -7,6 +7,8 @@ from PIL import Image
 data_path = os.getcwd()
 images_path = data_path + '/picture/train'
 data_path = data_path + '/resize_data'
+if not os.path.isdir(data_path):
+    os.mkdir('resize_data')
 
 with open ('driver_imgs_list.csv') as csvfile:
     old_subject = ''
@@ -22,13 +24,13 @@ with open ('driver_imgs_list.csv') as csvfile:
             index+=1
             old_subject = row[0]
             path = data_path+'/'+str(index) 
-            if not os.path.isdir(os.path.dirname(path)):
+            if not os.path.isdir(path):
                 os.mkdir(path)
             #print 'create '+ path
         if row[1] != old_class:
             old_class = row[1]
             path = data_path+'/'+str(index) +'/'+str(old_class) 
-            if not os.path.isdir(os.path.dirname(path)):
+            if not os.path.isdir(path):
                 os.mkdir(path)
             #print 'create ' + path
             sub_index=0
