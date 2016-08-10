@@ -36,7 +36,7 @@ color_type_global = 3
 # color_type = 1 - gray
 # color_type = 3 - RGB
 
-batch_size = 20
+batch_size = 46
 
 def get_im(path, img_rows, img_cols, color_type=1):
     # Load as grayscale
@@ -118,6 +118,24 @@ def load_test(img_rows, img_cols, color_type=1):
 
     return X_test, X_test_id
 
+def load_test(testing_set, img_rows, img_cols, color_type=1):
+    print('Read test images')
+    path = os.path.join('.', 'picture', testing_set, '*.jpg')
+    files = glob.glob(path)
+    X_test = []
+    X_test_id = []
+    total = 0
+    thr = math.floor(len(files)/10)
+    for fl in files:
+        flbase = os.path.basename(fl)
+        img = get_im(fl, img_rows, img_cols, color_type)
+        X_test.append(img)
+        X_test_id.append(flbase)
+        total += 1
+        if total % thr == 0:
+            print('Read {} images from {}'.format(total, len(files)))
+
+    return X_test, X_test_id
 
 def cache_data(data, path):
     if not os.path.isdir('cache'):
@@ -221,12 +239,12 @@ def read_and_normalize_and_shuffle_train_data(img_rows, img_cols,
     return train_data, train_target, driver_id, unique_drivers
 
 
-def read_and_normalize_test_data(img_rows=224, img_cols=224, color_type=1):
-    cache_path = os.path.join('cache', 'test_r_' + str(img_rows) +
+def read_and_normalize_test_data(testing_set, img_rows=224, img_cols=224, color_type=1):
+    cache_path = os.path.join('cache', 'test_' + testing_set + '_r_' + str(img_rows) +
                               '_c_' + str(img_cols) + '_t_' +
                               str(color_type) + '.dat')
     if not os.path.isfile(cache_path) or use_cache == 0:
-        test_data, test_id = load_test(img_rows, img_cols, color_type)
+        test_data, test_id = load_test(testing_set, img_rows, img_cols, color_type)
         cache_data((test_data, test_id), cache_path)
     else:
         print('Restore test from cache!')
@@ -399,7 +417,7 @@ def run_cross_validation(nfolds=10, nb_epoch=10, split=0.2, modelStr=''):
         #    yfull_train[test_index[i]] = predictions_valid[i]
 
     print('Start testing............')
-    test_data, test_id = read_and_normalize_test_data(img_rows, img_cols,
+    test_data, test_id = read_and_normalize_test_data(testing_set, img_rows, img_cols,
                                                       color_type_global)
     yfull_test = []
 
@@ -420,15 +438,14 @@ def run_cross_validation(nfolds=10, nb_epoch=10, split=0.2, modelStr=''):
     create_submission(test_res, test_id, info_string)
 
 
-def test_model_and_submit(start=1, end=1, modelStr=''):
+def test_model_and_submit(testing_set, start=1, end=1, modelStr=''):
     img_rows, img_cols = 224, 224
     # batch_size = 64
     # random_state = 51
     nb_epoch = 15
 
     print('Start testing............')
-    test_data, test_id = read_and_normalize_test_data(img_rows, img_cols,
-                                                      color_type_global)
+    test_data, test_id = read_and_normalize_test_data(testing_set, img_rows, img_cols, color_type_global)
     yfull_test = []
 
     for index in range(start, end + 1):
@@ -438,6 +455,7 @@ def test_model_and_submit(start=1, end=1, modelStr=''):
         yfull_test.append(test_prediction)
 
     info_string = 'loss_' + modelStr \
+                  + '_testing_set_' + testing_set \
                   + '_r_' + str(img_rows) \
                   + '_c_' + str(img_cols) \
                   + '_folds_' + str(end - start + 1) \
@@ -449,7 +467,11 @@ def test_model_and_submit(start=1, end=1, modelStr=''):
 # nfolds, nb_epoch, split
 run_cross_validation(10, 15, 0.15, '_vgg_16_2x20')
 
+model.save_weights('vgg16_Jiao_Dong_weights.h5')
 # nb_epoch, split
 # run_one_fold_cross_validation(10, 0.1)
 
-# test_model_and_submit(1, 10, 'high_epoch')
+test_model_and_submit('testing1', model, 1, 2, 'myVGG16')
+test_model_and_submit('testing2', model, 1, 2, 'myVGG16')
+test_model_and_submit('testing3', model, 1, 2, 'myVGG16')
+test_model_and_submit('testing4', model, 1, 2, 'myVGG16')
