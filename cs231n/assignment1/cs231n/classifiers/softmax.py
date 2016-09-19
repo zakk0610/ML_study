@@ -82,7 +82,7 @@ def softmax_loss_vectorized(W, X, y, reg):
   scores = scores - max_val  # Numeric stability.
   exp_scores = np.exp(scores)
   # loss_i = -f_yi + log(summation of e^fj)
-  loss = np.sum(-1 * scores[y]) + np.sum(np.log(np.sum(exp_scores, axis=1)))
+  loss = np.sum(-1 * scores[range(num_train), y]) + np.sum(np.log(np.sum(exp_scores, axis=1)))
   loss /= num_train
   loss += 0.5 * reg * np.sum(W * W)
   # grads
